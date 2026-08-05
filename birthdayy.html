@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25 Days Until You</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Dancing+Script:wght@500;700&family=EB+Garamond:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     EDIT ME — quick personalization guide
+     ------------------------------------------------------------
+     1. "Nicky" is already set below. Search "YOUR_NAME" to sign
+        the closing letter with your own name.
+     2. Search for "BIRTHDAY_DATE" in the <script> at the bottom and
+        set the real date, e.g. new Date('2026-09-02T00:00:00')
+     3. Search for "MEMORIES ARRAY" in the <script> and replace each
+        placeholder memory with a real one. Keep the same format:
+        { title: "short label", text: "the memory itself" }
+     4. To add a photo to a memory, replace img: null with
+        img: "https://your-image-url.jpg"
+     5. Search for "LOCKED_MEMORIES" in the <script> — set the real
+        first/second/third meeting dates (format: YYYY-MM-DD) and
+        edit the hint/text/img for each. That date is the "password"
+        that unlocks the memory card.
+     6. Search for "FINAL_PHOTO" — set img to a real photo of the
+        two of you. It appears automatically once every star in
+        the constellation has been opened.
+     ============================================================ */
+
+  :root{
+    --twilight-deep:#1b1330;
+    --twilight-mid:#2f2050;
+    --twilight-soft:#443368;
+    --blush:#f0c9d9;
+    --blush-soft:#f7ddE7;
+    --gold:#e3b873;
+    --gold-soft:#f0d5a0;
+    --lavender:#cbb3e0;
+    --cream:#faf4ec;
+    --cream-dim:#d8cfe0;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:
+      radial-gradient(ellipse at 20% 0%, var(--twilight-mid) 0%, var(--twilight-deep) 55%),
+      var(--twilight-deep);
+    color:var(--cream);
+    font-family:'EB Garamond', serif;
+    overflow-x:hidden;
+    min-height:100vh;
+  }
+
+  /* floating ambient hearts/petals */
+  .ambient{
+    position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;
+  }
+  .ambient span{
+    position:absolute; top:-40px; font-size:14px; color:var(--blush); opacity:.35;
+    animation:drift linear infinite;
+  }
+  @keyframes drift{
+    to{ transform:translateY(110vh) translateX(20px) rotate(180deg); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ambient span{ animation:none; display:none; }
+  }
+
+  section{ position:relative; z-index:1; }
+
+  /* ---------------- ROMANTIC EMOJI SIDE RAILS ---------------- */
+  .side-rail{
+    position:fixed;
+    top:0; bottom:0;
+    width:64px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:space-evenly;
+    z-index:2;
+    pointer-events:none;
+    opacity:.55;
+  }
+  .side-rail.left{ left:0; }
+  .side-rail.right{ right:0; }
+  .side-rail span{
+    font-size:1.15rem;
+    filter:drop-shadow(0 0 6px rgba(240,201,217,.35));
+    animation:railFloat 5s ease-in-out infinite;
+  }
+  .side-rail span:nth-child(2n){ animation-delay:1.1s; font-size:1rem; }
+  .side-rail span:nth-child(3n){ animation-delay:2.2s; font-size:1.3rem; }
+  @keyframes railFloat{
+    0%,100%{ transform:translateY(0); }
+    50%{ transform:translateY(-10px); }
+  }
+  @media (max-width:840px){
+    .side-rail{ display:none; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .side-rail span{ animation:none; }
+  }
+
+  /* ---------------- HERO ---------------- */
+  .hero{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:8vh 6vw 6vh;
+  }
+
+  .eyebrow{
+    font-family:'Dancing Script', cursive;
+    font-size:clamp(1.4rem, 3vw, 2rem);
+    color:var(--gold-soft);
+    letter-spacing:.02em;
+    margin-bottom:.5rem;
+  }
+
+  .hero h1{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:500;
+    font-style:italic;
+    font-size:clamp(2.2rem, 6vw, 4.2rem);
+    line-height:1.05;
+    color:var(--cream);
+    max-width:16ch;
+    margin-bottom:2.2rem;
+  }
+  .hero h1 em{
+    font-style:normal;
+    color:var(--blush);
+  }
+
+  .countdown{
+    display:flex;
+    gap:clamp(1rem,3vw,2.5rem);
+    margin-top:1rem;
+  }
+  .count-unit{
+    display:flex; flex-direction:column; align-items:center;
+    min-width:70px;
+  }
+  .count-num{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:600;
+    font-size:clamp(2.6rem, 8vw, 5rem);
+    line-height:1;
+    color:var(--gold);
+    text-shadow:0 0 30px rgba(227,184,115,.35);
+    font-variant-numeric: tabular-nums;
+  }
+  .count-label{
+    font-size:.75rem;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--cream-dim);
+    margin-top:.4rem;
+  }
+
+  .hero-sub{
+    margin-top:2.8rem;
+    font-style:italic;
+    color:var(--cream-dim);
+    font-size:1.05rem;
+    max-width:38ch;
+  }
+
+  .scroll-cue{
+    margin-top:3.5rem;
+    font-size:.75rem;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--lavender);
+    opacity:.7;
+    animation:bob 2.4s ease-in-out infinite;
+  }
+  @keyframes bob{
+    0%,100%{ transform:translateY(0); }
+    50%{ transform:translateY(6px); }
+  }
+
+  /* ---------------- CONSTELLATION ---------------- */
+  .sky-section{
+    padding:10vh 6vw 14vh;
+    text-align:center;
+  }
+  .section-eyebrow{
+    font-family:'Dancing Script', cursive;
+    color:var(--gold-soft);
+    font-size:1.4rem;
+    margin-bottom:.3rem;
+  }
+  .sky-section h2{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:500;
+    font-style:italic;
+    font-size:clamp(1.8rem, 4vw, 2.8rem);
+    margin-bottom:.8rem;
+  }
+  .sky-section p.lede{
+    color:var(--cream-dim);
+    max-width:46ch;
+    margin:0 auto 4rem;
+    font-size:1.02rem;
+  }
+
+  .sky{
+    position:relative;
+    max-width:900px;
+    height:560px;
+    margin:0 auto;
+    border:1px solid rgba(203,179,224,.18);
+    border-radius:16px;
+    background:radial-gradient(ellipse at 50% 30%, rgba(203,179,224,.06), transparent 60%);
+    overflow:hidden;
+  }
+  .sky svg.lines{
+    position:absolute; inset:0; width:100%; height:100%;
+    pointer-events:none;
+  }
+  .sky svg.lines line{
+    stroke:var(--lavender);
+    stroke-width:2.5;
+    stroke-linecap:round;
+    stroke-dasharray:.5 10;
+    opacity:.4;
+    transition:stroke .4s ease, opacity .4s ease;
+  }
+  .sky svg.lines line.lit{
+    stroke:var(--blush);
+    opacity:.85;
+  }
+
+  .star{
+    position:absolute;
+    width:16px; height:16px;
+    transform:translate(-50%,-50%);
+    cursor:pointer;
+    background:transparent;
+    border:none;
+    padding:0;
+  }
+  .star::before{
+    content:'';
+    position:absolute; inset:0;
+    background:var(--gold-soft);
+    border-radius:50%;
+    box-shadow:0 0 10px 3px rgba(240,213,160,.55);
+    animation:twinkle 3.2s ease-in-out infinite;
+  }
+  .star:nth-child(odd)::before{ animation-delay:.6s; }
+  .star:hover::before{ background:var(--blush); box-shadow:0 0 16px 6px rgba(240,201,217,.7); }
+  .star.visited::before{ background:var(--blush); box-shadow:0 0 14px 5px rgba(240,201,217,.8); }
+  @keyframes twinkle{
+    0%,100%{ opacity:.55; transform:scale(1); }
+    50%{ opacity:1; transform:scale(1.35); }
+  }
+  .star-sticker{
+    position:absolute;
+    top:-14px; left:50%; transform:translateX(-50%);
+    font-size:1rem;
+    filter:drop-shadow(0 0 4px rgba(0,0,0,.4));
+    pointer-events:none;
+    animation:twinkle 3.2s ease-in-out infinite;
+  }
+  .star-label{
+    position:absolute;
+    top:16px; left:50%; transform:translateX(-50%);
+    font-size:.68rem;
+    color:var(--cream-dim);
+    white-space:nowrap;
+    opacity:0;
+    transition:opacity .25s ease;
+    pointer-events:none;
+  }
+  .star:hover .star-label{ opacity:1; }
+
+  .sky-hint{
+    margin-top:1.6rem;
+    font-size:.8rem;
+    color:var(--lavender);
+    opacity:.65;
+    font-style:italic;
+  }
+  .sky-progress{
+    margin-top:.6rem;
+    font-size:.75rem;
+    color:var(--gold-soft);
+    letter-spacing:.05em;
+  }
+
+  /* modal */
+  .modal-backdrop{
+    position:fixed; inset:0;
+    background:rgba(15,10,26,.72);
+    backdrop-filter:blur(3px);
+    display:none;
+    align-items:center; justify-content:center;
+    z-index:50;
+    padding:6vw;
+  }
+  .modal-backdrop.open{ display:flex; }
+  .modal-card{
+    background:linear-gradient(160deg, var(--twilight-soft), var(--twilight-mid));
+    border:1px solid rgba(240,213,160,.25);
+    border-radius:18px;
+    max-width:480px;
+    width:100%;
+    padding:2.6rem 2.2rem;
+    text-align:center;
+    position:relative;
+    box-shadow:0 20px 60px rgba(0,0,0,.4);
+  }
+  .modal-card img{
+    width:100%; border-radius:10px; margin-bottom:1.2rem;
+    max-height:220px; object-fit:cover;
+  }
+  .modal-card .modal-title{
+    font-family:'Dancing Script', cursive;
+    font-size:1.6rem;
+    color:var(--gold-soft);
+    margin-bottom:.8rem;
+  }
+  .modal-card .modal-text{
+    font-style:italic;
+    font-size:1.15rem;
+    line-height:1.6;
+    color:var(--cream);
+  }
+  .modal-close{
+    position:absolute; top:14px; right:18px;
+    background:none; border:none; color:var(--cream-dim);
+    font-size:1.4rem; cursor:pointer; line-height:1;
+  }
+  .modal-close:hover{ color:var(--blush); }
+
+  /* final "us" reveal card gets a warmer glow */
+  .modal-card.final{
+    border-color:rgba(240,201,217,.6);
+    box-shadow:0 0 60px rgba(240,201,217,.25), 0 20px 60px rgba(0,0,0,.4);
+  }
+  .final-placeholder{
+    width:100%;
+    height:220px;
+    border-radius:10px;
+    margin-bottom:1.2rem;
+    display:flex; align-items:center; justify-content:center;
+    font-size:2.6rem;
+    background:linear-gradient(135deg, rgba(240,201,217,.18), rgba(227,184,115,.12));
+    border:1px dashed rgba(240,213,160,.4);
+  }
+
+  /* ---------------- LOCKED MEMORY VAULT ---------------- */
+  .vault-section{
+    padding:6vh 6vw 12vh;
+    text-align:center;
+  }
+  .vault-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+    gap:1.6rem;
+    max-width:960px;
+    margin:3.5rem auto 0;
+  }
+  .lock-card{
+    background:linear-gradient(165deg, rgba(203,179,224,.07), rgba(240,201,217,.03));
+    border:1px solid rgba(240,213,160,.22);
+    border-radius:18px;
+    padding:2.2rem 1.6rem 2rem;
+    display:flex; flex-direction:column; align-items:center;
+    transition:border-color .3s ease, background .4s ease;
+  }
+  .lock-card.unlocked{
+    border-color:rgba(240,201,217,.5);
+    background:linear-gradient(165deg, rgba(240,201,217,.1), rgba(227,184,115,.05));
+  }
+
+  .lock-icon{ width:56px; height:56px; margin-bottom:1rem; }
+  .lock-icon .shackle{
+    transition:transform .5s cubic-bezier(.34,1.56,.64,1);
+    transform-origin:38px 24px;
+  }
+  .lock-card.unlocked .lock-icon .shackle{
+    transform:rotate(-35deg) translate(-5px,-3px);
+  }
+  .lock-card.unlocked .lock-icon .body{ fill:rgba(240,201,217,.12); }
+
+  .lock-title{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-size:1.3rem;
+    color:var(--cream);
+    margin-bottom:.3rem;
+  }
+  .lock-hint{
+    font-size:.78rem;
+    color:var(--cream-dim);
+    opacity:.65;
+    font-style:italic;
+    margin-bottom:1.1rem;
+  }
+
+  .lock-form{
+    display:flex;
+    gap:.5rem;
+    width:100%;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .lock-form input[type="date"]{
+    background:rgba(250,244,236,.06);
+    border:1px solid rgba(203,179,224,.35);
+    border-radius:8px;
+    padding:.5rem .6rem;
+    color:var(--cream);
+    font-family:'EB Garamond', serif;
+    font-size:.9rem;
+    color-scheme:dark;
+  }
+  .lock-form input[type="date"]:focus{ outline:1px solid var(--gold-soft); }
+  .lock-form button{
+    background:var(--gold-soft);
+    color:var(--twilight-deep);
+    border:none;
+    border-radius:8px;
+    padding:.5rem 1.1rem;
+    font-family:'EB Garamond', serif;
+    font-size:.85rem;
+    letter-spacing:.03em;
+    cursor:pointer;
+    transition:transform .15s ease, background .2s ease;
+  }
+  .lock-form button:hover{ background:var(--blush); }
+  .lock-form.shake{ animation:shake .4s ease; }
+  @keyframes shake{
+    0%,100%{ transform:translateX(0); }
+    25%{ transform:translateX(-6px); }
+    75%{ transform:translateX(6px); }
+  }
+
+  .lock-error{
+    font-size:.75rem;
+    color:var(--blush);
+    margin-top:.5rem;
+    min-height:1em;
+    opacity:.85;
+  }
+
+  .lock-reveal{
+    display:none;
+    margin-top:.4rem;
+    width:100%;
+  }
+  .lock-card.unlocked .lock-reveal{ display:block; animation:fadeUp .6s ease; }
+  .lock-card.unlocked .lock-form{ display:none; }
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(10px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  .lock-reveal img{
+    width:100%; border-radius:10px; margin-bottom:.9rem;
+    max-height:180px; object-fit:cover;
+  }
+  .lock-reveal .reveal-text{
+    font-style:italic;
+    font-size:1rem;
+    line-height:1.6;
+    color:var(--cream-dim);
+  }
+
+  /* ---------------- CLOSING LETTER ---------------- */
+  .letter-section{
+    padding:8vh 6vw 12vh;
+    display:flex; justify-content:center;
+  }
+  .letter{
+    max-width:560px;
+    background:rgba(240,201,217,.04);
+    border:1px solid rgba(240,213,160,.2);
+    border-radius:18px;
+    padding:3.2rem clamp(1.6rem,5vw,3.4rem);
+    text-align:left;
+  }
+  .letter .sig{
+    font-family:'Dancing Script', cursive;
+    font-size:1.7rem;
+    color:var(--gold-soft);
+    margin-bottom:1.4rem;
+    display:block;
+  }
+  .letter p{
+    font-size:1.08rem;
+    line-height:1.75;
+    color:var(--cream-dim);
+    margin-bottom:1.2rem;
+  }
+  .letter .from{
+    margin-top:1.8rem;
+    font-family:'Dancing Script', cursive;
+    font-size:1.4rem;
+    color:var(--blush);
+    text-align:right;
+  }
+
+  footer{
+    text-align:center;
+    padding:3rem 6vw 4rem;
+    font-size:.75rem;
+    letter-spacing:.15em;
+    text-transform:uppercase;
+    color:rgba(216,207,224,.4);
+  }
+
+  @media (max-width:640px){
+    .sky{ height:420px; }
+    .countdown{ gap:1rem; }
+    .count-unit{ min-width:56px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient" id="ambient"></div>
+
+<div class="side-rail left" id="railLeft"></div>
+<div class="side-rail right" id="railRight"></div>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="eyebrow">for Nicky, with all my heart 💕</div>
+  <h1>Something wonderful<br>is <em>25 days</em> away</h1>
+
+  <div class="countdown" id="countdown">
+    <div class="count-unit"><div class="count-num" id="cd-days">25</div><div class="count-label">days</div></div>
+    <div class="count-unit"><div class="count-num" id="cd-hours">00</div><div class="count-label">hours</div></div>
+    <div class="count-unit"><div class="count-num" id="cd-mins">00</div><div class="count-label">minutes</div></div>
+    <div class="count-unit"><div class="count-num" id="cd-secs">00</div><div class="count-label">seconds</div></div>
+  </div>
+
+  <p class="hero-sub">Until the day the world got a little brighter — and every year since, brighter still because I get to celebrate it with you. 🌙✨</p>
+
+  <div class="scroll-cue">scroll down ✦ a little universe of us</div>
+</section>
+
+<!-- ================= CONSTELLATION OF MEMORIES ================= -->
+<section class="sky-section">
+  <div class="section-eyebrow">a constellation, just for us</div>
+  <h2>Every star is something I remember</h2>
+  <p class="lede">Click a star to open the memory. Find them all, and the whole constellation lights up — with something extra waiting at the end. 💫</p>
+
+  <div class="sky" id="sky">
+    <svg class="lines" id="skyLines"></svg>
+    <!-- stars injected by JS -->
+  </div>
+  <div class="sky-hint">tap / click each star ✦</div>
+  <div class="sky-progress" id="skyProgress">0 of 8 memories found</div>
+</section>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal-card" id="modalCard">
+    <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+    <div id="modalImgWrap"></div>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-text" id="modalText"></div>
+  </div>
+</div>
+
+<!-- ================= LOCKED MEMORY VAULT ================= -->
+<section class="vault-section">
+  <div class="section-eyebrow">for your eyes only</div>
+  <h2>Three dates only you would know</h2>
+  <p class="lede">Each lock opens with the real date it happened. Get it right, and a memory unlocks. 🔐💗</p>
+
+  <div class="vault-grid" id="vaultGrid"></div>
+</section>
+
+<!-- ================= CLOSING LETTER ================= -->
+<section class="letter-section">
+  <div class="letter">
+    <span class="sig">Twenty-five days to go... 💕</span>
+    <p>I built this little countdown because I wanted you to know, every single day until your birthday, just how much you mean to me. Every star up there is a real memory — and I'm still collecting them, every day, with you.</p>
+    <p>So here's to the twenty-five days ahead, and to however many more come after that. I can't wait to celebrate you, Nicky.</p>
+    <span class="from">— Nyla</span>
+  </div>
+</section>
+
+<footer>made with love, one star at a time</footer>
+
+<script>
+/* ============================================================
+   EDIT ME — set the real birthday date here
+   ============================================================ */
+const BIRTHDAY_DATE = new Date('2026-08-28T00:00:00'); // <-- change this (currently 25 days out)
+
+/* ============================================================
+   MEMORIES ARRAY — edit these! Replace title/text with real
+   memories. Add img: "url" to show a photo instead of no image.
+   You can add or remove entries, but keep 8 for the heart shape
+   to line up nicely.
+   ============================================================ */
+const MEMORIES = [
+  { title: "Our First Meeting", sticker: "🥰", text: "The very first time our eyes met — and somehow, some part of me already knew.", img: null },
+  { title: "Our First Kiss", sticker: "💋", text: "In the park, under the trees, you kissed me so softly on the neck — my whole world went quiet for a second.", img: null },
+  { title: "Our First Hug", sticker: "🤗", text: "The hug before I had to go home — you held on just a little longer, like you weren't ready to let go either.", img: null },
+  { title: "Our First Night Together", sticker: "💑", text: "The first night we stayed together, wrapped up in each other — everything else just melted away.", img: null },
+  { title: "Carried Away", sticker: "😍", text: "The day you picked me up right there in public, not caring who was watching — I fell for you all over again.", img: null },
+  { title: "Taken Care Of", sticker: "🥹", text: "The way you take care of me, so gently, like no one ever has — it leaves me speechless every single time.", img: null },
+  { title: "The First Time You Fed Me", sticker: "🥺", text: "The first time you fed me with your own hands — I don't know why, but my eyes filled with tears. No one had ever made me feel that cared for.", img: null },
+  { title: "When You Said I Love You", sticker: "😭", text: "The moment you said 'I love you' for the first time — I stayed calm on the outside, but inside, I was screaming with joy.", img: null }
+];
+
+/* ============================================================
+   LOCKED_MEMORIES — edit these! "date" must be the real date in
+   YYYY-MM-DD format — that's the answer that unlocks the card.
+   "hint" is a soft clue shown under the title. Add img: "url" to
+   show a photo once unlocked.
+   ============================================================ */
+const LOCKED_MEMORIES = [
+  {
+    title: "Our First Meeting",
+    date: "2026-02-25",
+    hint: "the day our story began",
+    text: "The first time I saw you, I had no idea this day would end up meaning everything. Happy almost-anniversary of us.",
+    img: "C:/Users/beera/Downloads/nn2.png"
+  },
+  {
+    title: "Our Second Meeting",
+    date: "2026-03-07",
+    hint: "the day I knew I wanted a third",
+    text: "The second time was when I stopped pretending I wasn't already looking forward to the next one.",
+    img:"C:/Users/beera/OneDrive/Pictures/Screenshots/Screenshot 2026-08-05 223950.png"
+  },
+  {
+    title: "Our Third Meeting",
+    date: "2026-03-14",
+    hint: "the day it stopped feeling like a coincidence",
+    text: "By the third time, it wasn't chance anymore — it was us, choosing each other.",
+    img: "C:/Users/beera/Downloads/nn4.jpg"
+  }
+];
+
+/* ============================================================
+   FINAL_PHOTO — the reveal shown once every star has been
+   opened. Set img to a real photo URL of the two of you.
+   Leave img: null to show a placeholder heart instead.
+   ============================================================ */
+const FINAL_PHOTO = {
+  title: "All of Us, Together",
+  text: "Every star led back to the same place: you and me. Happy almost-birthday, Nicky — here's to us. 💞",
+  img: "C:/Users/beera/Downloads/nn.jpeg"
+  
+};
+
+/* ---------- side rail emojis ---------- */
+(function buildRails(){
+  const glyphs = ['💕','💖','✨','🌙','💫','😘','💌','🥰'];
+  ['railLeft','railRight'].forEach((id, side) => {
+    const rail = document.getElementById(id);
+    glyphs.forEach((g, i) => {
+      const s = document.createElement('span');
+      s.textContent = g;
+      s.style.animationDelay = (i * 0.4 + side * 0.6) + 's';
+      rail.appendChild(s);
+    });
+  });
+})();
+
+/* ============================================================
+   SAD_QUOTES — shown (one at random) when the wrong date is
+   entered on a locked memory. Edit or add your own lines.
+   ============================================================ */
+const SAD_QUOTES = [
+  "Not that day — but I'd relive every wrong guess if it meant more time thinking of you.",
+  "Wrong date, but my heart still remembers every day it's ever spent missing you.",
+  "Try again — some memories ache more than others, and I'm still not over any of them.",
+  "Not quite. Funny how even the days I got wrong, I still think about you.",
+  "That's not it — but if love had a date, I'd have memorized it by now."
+];
+
+/* ---------- build the vault ---------- */
+(function buildVault(){
+  const grid = document.getElementById('vaultGrid');
+  LOCKED_MEMORIES.forEach((mem, i) => {
+    const card = document.createElement('div');
+    card.className = 'lock-card';
+    card.innerHTML = `
+      <svg class="lock-icon" viewBox="0 0 64 64">
+        <path class="shackle" d="M22 30 V20 a10 10 0 0 1 20 0 V30" fill="none" stroke="var(--gold)" stroke-width="4" stroke-linecap="round"/>
+        <rect class="body" x="16" y="30" width="32" height="24" rx="5" fill="rgba(27,19,48,.6)" stroke="var(--gold)" stroke-width="2"/>
+      </svg>
+      <div class="lock-title">${mem.title}</div>
+      <div class="lock-hint">hint: ${mem.hint}</div>
+      <form class="lock-form" data-idx="${i}">
+        <input type="date" required aria-label="Enter the date">
+        <button type="submit">Unlock</button>
+      </form>
+      <div class="lock-error"></div>
+      <div class="lock-reveal">
+        ${mem.img ? `<img src="${mem.img}" alt="${mem.title}">` : ''}
+        <div class="reveal-text">${mem.text}</div>
+      </div>
+    `;
+    grid.appendChild(card);
+
+    const form = card.querySelector('.lock-form');
+    const errorEl = card.querySelector('.lock-error');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const raw = form.querySelector('input[type="date"]').value;
+      const val = (raw || '').trim();
+      const target = (mem.date || '').trim();
+      if(val && val === target){
+        card.classList.add('unlocked');
+        errorEl.textContent = '';
+      } else {
+        errorEl.textContent = SAD_QUOTES[Math.floor(Math.random() * SAD_QUOTES.length)];
+        form.classList.remove('shake');
+        void form.offsetWidth; // restart animation
+        form.classList.add('shake');
+      }
+    });
+  });
+})();
+
+/* ---------- ambient floating hearts ---------- */
+(function ambient(){
+  const el = document.getElementById('ambient');
+  const glyphs = ['♥','✦','❀'];
+  const count = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 14;
+  for(let i=0;i<count;i++){
+    const s = document.createElement('span');
+    s.textContent = glyphs[i % glyphs.length];
+    s.style.left = Math.random()*100 + 'vw';
+    s.style.animationDuration = (14 + Math.random()*14) + 's';
+    s.style.animationDelay = (Math.random()*14) + 's';
+    s.style.fontSize = (10 + Math.random()*10) + 'px';
+    el.appendChild(s);
+  }
+})();
+
+/* ---------- countdown ---------- */
+function updateCountdown(){
+  const now = new Date();
+  let diff = BIRTHDAY_DATE - now;
+  if(diff < 0) diff = 0;
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  const secs = Math.floor((diff % 60000) / 1000);
+  document.getElementById('cd-days').textContent = String(days).padStart(2,'0');
+  document.getElementById('cd-hours').textContent = String(hours).padStart(2,'0');
+  document.getElementById('cd-mins').textContent = String(mins).padStart(2,'0');
+  document.getElementById('cd-secs').textContent = String(secs).padStart(2,'0');
+}
+updateCountdown();
+setInterval(updateCountdown, 1000);
+
+/* ---------- constellation ---------- */
+const visitedStars = new Set();
+let lineEls = [];
+
+(function buildSky(){
+  const sky = document.getElementById('sky');
+  const linesSvg = document.getElementById('skyLines');
+  const W = 900, H = 560;
+  linesSvg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  // heart-shaped positions (percentages) — traced in order so the
+  // dotted connecting lines draw a heart outline around the memories
+  const positions = [
+    {x:50,   y:28},
+    {x:62.4, y:12},
+    {x:85,   y:30.6},
+    {x:62.4, y:63.9},
+    {x:50,   y:82},
+    {x:37.6, y:63.9},
+    {x:15,   y:30.6},
+    {x:37.6, y:12}
+  ];
+
+  const points = [];
+  MEMORIES.forEach((mem, i) => {
+    const pos = positions[i % positions.length];
+    const btn = document.createElement('button');
+    btn.className = 'star';
+    btn.dataset.idx = i;
+    btn.style.left = pos.x + '%';
+    btn.style.top = pos.y + '%';
+    btn.setAttribute('aria-label', mem.title);
+    if(mem.sticker){
+      const sticker = document.createElement('span');
+      sticker.className = 'star-sticker';
+      sticker.textContent = mem.sticker;
+      btn.appendChild(sticker);
+    }
+    const label = document.createElement('span');
+    label.className = 'star-label';
+    label.textContent = mem.sticker ? `${mem.sticker} ${mem.title}` : mem.title;
+    btn.appendChild(label);
+    btn.addEventListener('click', () => {
+      btn.classList.add('visited');
+      visitedStars.add(i);
+      updateProgress();
+      updateLitLines();
+      openMemory(mem);
+    });
+    sky.appendChild(btn);
+    points.push({x: pos.x/100*W, y: pos.y/100*H});
+  });
+
+  // connect consecutive stars with a dotted constellation line,
+  // closing the loop so the outline forms a full heart
+  for(let i=0;i<points.length;i++){
+    const next = points[(i+1) % points.length];
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', points[i].x);
+    line.setAttribute('y1', points[i].y);
+    line.setAttribute('x2', next.x);
+    line.setAttribute('y2', next.y);
+    line.dataset.a = i;
+    line.dataset.b = (i+1) % points.length;
+    linesSvg.appendChild(line);
+    lineEls.push(line);
+  }
+})();
+
+function updateLitLines(){
+  lineEls.forEach(line => {
+    const a = Number(line.dataset.a), b = Number(line.dataset.b);
+    if(visitedStars.has(a) && visitedStars.has(b)){
+      line.classList.add('lit');
+    }
+  });
+}
+
+function updateProgress(){
+  const el = document.getElementById('skyProgress');
+  el.textContent = `${visitedStars.size} of ${MEMORIES.length} memories found`;
+  if(visitedStars.size === MEMORIES.length){
+    el.textContent = 'All memories found ✨';
+  }
+}
+
+function openMemory(mem){
+  document.getElementById('modalCard').classList.remove('final');
+  document.getElementById('modalTitle').textContent = mem.sticker ? `${mem.sticker}  ${mem.title}  ${mem.sticker}` : mem.title;
+  document.getElementById('modalText').textContent = mem.text;
+  const imgWrap = document.getElementById('modalImgWrap');
+  imgWrap.innerHTML = '';
+  if(mem.img){
+    const img = document.createElement('img');
+    img.src = mem.img;
+    img.alt = mem.title;
+    imgWrap.appendChild(img);
+  }
+  document.getElementById('modalBackdrop').classList.add('open');
+
+  // if this was the last star, queue up the final "us" reveal
+  if(visitedStars.size === MEMORIES.length){
+    document.getElementById('modalBackdrop').dataset.pendingFinal = '1';
+  }
+}
+
+function openFinalReveal(){
+  document.getElementById('modalCard').classList.add('final');
+  document.getElementById('modalTitle').textContent = `💞  ${FINAL_PHOTO.title}  💞`;
+  document.getElementById('modalText').textContent = FINAL_PHOTO.text;
+  const imgWrap = document.getElementById('modalImgWrap');
+  imgWrap.innerHTML = '';
+  if(FINAL_PHOTO.img){
+    const img = document.createElement('img');
+    img.src = FINAL_PHOTO.img;
+    img.alt = FINAL_PHOTO.title;
+    imgWrap.appendChild(img);
+  } else {
+    const placeholder = document.createElement('div');
+    placeholder.className = 'final-placeholder';
+    placeholder.textContent = '💑';
+    imgWrap.appendChild(placeholder);
+  }
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('modalBackdrop').addEventListener('click', (e) => {
+  if(e.target.id === 'modalBackdrop') closeModal();
+});
+function closeModal(){
+  const backdrop = document.getElementById('modalBackdrop');
+  const wasPendingFinal = backdrop.dataset.pendingFinal === '1' && !backdrop.dataset.finalShown;
+  backdrop.classList.remove('open');
+  if(wasPendingFinal){
+    backdrop.dataset.finalShown = '1';
+    setTimeout(openFinalReveal, 450);
+  }
+}
+</script>
+</body>
+</html>
